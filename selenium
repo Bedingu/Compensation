@@ -1,0 +1,278 @@
+#libraries used
+
+from selenium import webdriver
+
+from selenium.webdriver.chrome.options import Options
+
+from bs4 import BeautifulSoup
+
+import time
+
+import pandas as pd
+
+from selenium.webdriver.common.action_chains import ActionChains
+
+from openpyxl import Workbook
+
+arquivo_excel=Workbook()
+
+planilha=arquivo_excel.active
+
+planilha.title="Ressarcimento"
+ 
+
+diretorio_download = "C:\\Users\\bedingu\\Downloads"
+
+# diretorio_download = "C:\\Users\\filhnar\\Downloads"
+
+# diretorio_download = r"C:\Users\filhnar\Downloads"
+ 
+
+options = Options()
+
+options.add_argument('--start-maximezed')
+
+options.add_argument('--disable-extensions')
+
+prefs = {
+
+    'profile.default_content_settings.popups': 0,
+
+    'download.default_directory': diretorio_download, 
+
+    'directory_upgrade': True,
+
+    'download.prompt_for_download': False,
+
+    'safebrowsing.enabled': True,
+
+    'profile.default_content_setting_values.automatic_downloads': 1
+
+}
+
+
+options.add_experimental_option('prefs', prefs)
+
+options.add_experimental_option("useAutomationExtension", False)
+
+
+driver=webdriver.Chrome(r"C:\Users\bedingu\Desktop\Versões_Bibliotecas_Python\chromedriver_win32\chromedriver.exe",options=options)
+
+driver.get('https://wscorp8/ln/Vagen1LogonPortal.jsp')
+ 
+
+#Selenium
+
+#Login na página
+
+from selenium.webdriver.common.keys import Keys
+
+login = driver.find_element_by_name('hptUserid')
+
+login.clear()
+
+login.send_keys("") 
+
+pswrd = driver.find_element_by_name('hptPassword')
+
+pswrd.clear()
+
+pswrd.send_keys("200425")
+ 
+
+btn = driver.find_element_by_name('hptLogin')
+
+btn.click()
+ 
+
+#definition dos HiddenMenus
+
+driver.switch_to.frame(1)
+
+time.sleep(2.0) 
+
+consulta = driver.find_element_by_id('menu2')
+
+consulta.click()
+
+time.sleep(0.5)
+
+
+BB = driver.find_element_by_id('2_1')
+
+hover = ActionChains(driver).move_to_element(BB)
+
+hover.perform()
+
+time.sleep(0.5)
+
+Diferencas = driver.find_element_by_id('2_1_2')
+
+hover2 = ActionChains(driver).move_to_element(Diferencas)
+
+hover2.perform()
+
+Diferencas.click()
+
+time.sleep(0.3)
+
+#Accounting date for issuing the form
+
+dia = driver.find_element_by_name('DIAPESQ')
+
+dia.clear()
+
+dia.send_keys("10")
+
+mes = driver.find_element_by_name('MESPESQ')
+
+mes.clear()
+
+mes.send_keys("02")
+
+ano = driver.find_element_by_name('ANOPESQ')
+
+ano.clear()
+
+ano.send_keys("2021")
+
+consultar = driver.find_element_by_name('CONSULTAR')
+
+consultar.click()
+
+time.sleep(2.0)
+
+df = pd.DataFrame(columns=['agenciaBB', 'tipoDiferenca', 'valorLancamento', 'transportadora', 'historico','resumo'])
+
+df.head()       
+
+#Counting'files
+
+radioButtonCounter = 0
+
+elements = driver.find_elements_by_class_name('TAB_Registro1')
+
+n = len(elements)
+
+for i in range(n):
+
+    elements = driver.find_elements_by_class_name('TAB_Registro1')
+
+    el = elements[i]
+
+    inputs = el.find_elements_by_css_selector('input')
+
+    if len(inputs) > 0:
+
+        inputs[0].click()
+
+        processar = driver.find_element_by_id('PROCESSAR')
+
+        processar.click()
+
+        time.sleep(4)
+
+#Selection of fields used in BBC Compensation       
+
+        agenciaBB = driver.find_elements_by_class_name('FRM_Label')[1].get_attribute('innerText')
+
+        print(agenciaBB)
+
+        #except Except as e:
+
+        #agenciaBB = 'Sem dados'
+
+        #print(agenciaBB)
+
+        #planilha['A1'] = agenciaBB
+
+        tipoDiferenca = driver.find_elements_by_class_name('FRM_Label')[2].get_attribute('innerText')               
+
+        print(tipoDiferenca)
+
+        #except Except as e:
+
+        #tipoDiferenca ='Sem dados'
+
+        #print(tipoDiferenca)
+
+        #planilha['B1'] = tipoDiferenca
+
+        valorLancamento = driver.find_elements_by_class_name('FRM_Label')[12].get_attribute('innerText')
+
+        print(valorLancamento)
+
+        #except Except as e:
+
+        #valorLancamento ='Sem dados'
+
+        #print(valorLancamento)
+
+        #planilha['C1'] = valorLancamento
+
+        transportadora = driver.find_elements_by_class_name('FRM_Label')[11].get_attribute('innerText')
+
+        print(transportadora)
+
+        #except Except as e:
+
+        #transportadora ='Sem dados'
+
+        #print(transportadora)
+
+        #planilha['D1'] = transportadora
+
+        historico = driver.find_elements_by_class_name('FRM_Label')[14].get_attribute('innerText')
+
+        print(historico)
+
+        #except Except as e:
+
+        #historico ='Sem dados'
+
+        #print(historico)
+
+        #planilha['E1'] = historico
+
+        resumo = driver.find_elements_by_class_name('FRM_Label')[15].get_attribute('innerText')
+
+        print(resumo)
+
+        #except Except as e:
+
+        #resumo= 'Sem dados'
+
+        #print(resumo)
+
+        #planilha['G1'] = resumo
+
+     
+        df2 = pd.DataFrame({
+
+        'agenciaBB':[agenciaBB],
+
+        'tipoDiferenca':[tipoDiferenca] ,
+
+        'valorLancamento':[valorLancamento] ,
+
+        'transportadora':[transportadora] ,
+
+        'historico':[historico],
+
+        'resumo':[resumo]
+
+        })
+
+        df = df.append(df2, ignore_index=True)
+        
+        print(df)
+        
+        voltar = driver.find_element_by_id('VOLTAR')
+        
+        voltar.click()
+        
+        time.sleep(3.0)
+
+    time.sleep(0.1)
+
+df.to_excel(r'C:\Users\bedingu\Desktop\Bases_Contábil\Ressarcimento.xlsx', index = False, header=True)
